@@ -1,1879 +1,1040 @@
 <!doctype html>
-<html lang="en" data-bs-theme="light">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <title>Shop Inventory</title>
+<html lang="en">
 
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      crossorigin="anonymous"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory Pro – Shop Inventory Manager</title>
+  <meta name="description"
+    content="A beautiful, fast shop inventory manager with analytics, purchase orders and backup." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── Design Tokens ── */
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3248;
+      --primary: #7c6ff7;
+      --primary-h: #6457e8;
+      --success: #22d3a0;
+      --warning: #f59e0b;
+      --danger: #f43f5e;
+      --info: #38bdf8;
+      --text: #e2e8f0;
+      --muted: #8892a4;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --shadow: 0 4px 24px rgba(0, 0, 0, .45);
+    }
 
-    <style>
-      :root {
-        --primary: #667eea;
-        --primary-dark: #5568d3;
-        --danger: #ef4444;
-        --warning: #f59e0b;
-        --success: #10b981;
-        --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        --bottom-nav-height: 65px;
-        --fab-size: 56px;
+    /* ── Reset ── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Layout ── */
+    .shell {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      grid-template-rows: auto 1fr;
+      min-height: 100vh;
+    }
+
+    /* ── Top Bar ── */
+    .topbar {
+      grid-column: 1 / -1;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: .85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      font-size: 1.25rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--info));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      white-space: nowrap;
+    }
+
+    .brand-icon {
+      font-size: 1.4rem;
+      -webkit-text-fill-color: initial;
+    }
+
+    .topbar-right {
+      display: flex;
+      gap: .6rem;
+      align-items: center;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 1.25rem .75rem;
+      display: flex;
+      flex-direction: column;
+      gap: .25rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .7rem 1rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--muted);
+      transition: all .2s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-size: .95rem;
+      font-family: inherit;
+    }
+
+    .nav-item:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(124, 111, 247, .18), rgba(56, 189, 248, .1));
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-item i {
+      font-size: 1.1rem;
+      width: 1.2rem;
+      text-align: center;
+    }
+
+    .nav-section-label {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--muted);
+      text-transform: uppercase;
+      padding: .75rem 1rem .25rem;
+    }
+
+    /* ── Main ── */
+    .main {
+      padding: 1.5rem;
+      overflow-y: auto;
+      background: var(--bg);
+    }
+
+    /* ── Page Header ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: .75rem;
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+
+    .page-subtitle {
+      color: var(--muted);
+      font-size: .9rem;
+      margin-top: .15rem;
+    }
+
+    /* ── Stat Cards ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: all .25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent, var(--primary));
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+      border-color: var(--accent, var(--primary));
+    }
+
+    .stat-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      margin-bottom: .75rem;
+      background: rgba(124, 111, 247, .12);
+      color: var(--accent, var(--primary));
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--accent, var(--primary));
+      line-height: 1;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: .82rem;
+      margin-top: .35rem;
+      font-weight: 500;
+    }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex;
+      gap: .75rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-wrap {
+      flex: 1;
+      min-width: 200px;
+      position: relative;
+    }
+
+    .search-wrap i {
+      position: absolute;
+      left: .85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: .65rem .75rem .65rem 2.4rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: inherit;
+      font-size: .9rem;
+      transition: border-color .2s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .search-input::placeholder {
+      color: var(--muted);
+    }
+
+    /* ── Select ── */
+    .sel {
+      padding: .65rem .9rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: inherit;
+      font-size: .9rem;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+
+    .sel:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .65rem 1.1rem;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-h);
+      box-shadow: 0 4px 14px rgba(124, 111, 247, .4);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #0f1117;
+    }
+
+    .btn-success:hover {
+      box-shadow: 0 4px 14px rgba(34, 211, 160, .35);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      box-shadow: 0 4px 14px rgba(244, 63, 94, .35);
+    }
+
+    .btn-ghost {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-icon {
+      padding: .55rem .65rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: var(--radius-sm);
+    }
+
+    .btn-icon:hover {
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .btn-sm {
+      padding: .4rem .75rem;
+      font-size: .82rem;
+    }
+
+    /* ── Product Grid ── */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 1rem;
+    }
+
+    .product-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem;
+      transition: all .25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .product-card::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--status-color, var(--success));
+      border-radius: var(--radius) 0 0 var(--radius);
+    }
+
+    .product-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+      border-color: var(--status-color, var(--success));
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: .6rem;
+    }
+
+    .cat-badge {
+      font-size: .72rem;
+      font-weight: 700;
+      padding: .2rem .6rem;
+      border-radius: 20px;
+      background: rgba(124, 111, 247, .15);
+      color: var(--primary);
+      letter-spacing: .02em;
+    }
+
+    .status-pill {
+      font-size: .7rem;
+      font-weight: 700;
+      padding: .2rem .55rem;
+      border-radius: 20px;
+    }
+
+    .status-pill.in-stock {
+      background: rgba(34, 211, 160, .15);
+      color: var(--success);
+    }
+
+    .status-pill.low-stock {
+      background: rgba(245, 158, 11, .15);
+      color: var(--warning);
+    }
+
+    .status-pill.needs-reorder {
+      background: rgba(56, 189, 248, .15);
+      color: var(--info);
+    }
+
+    .status-pill.out-of-stock {
+      background: rgba(244, 63, 94, .15);
+      color: var(--danger);
+    }
+
+    .product-name {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: .5rem;
+    }
+
+    .product-supplier {
+      font-size: .8rem;
+      color: var(--muted);
+      margin-bottom: .75rem;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: .83rem;
+      color: var(--muted);
+      padding: .3rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .info-row:last-of-type {
+      border-bottom: none;
+    }
+
+    .info-row strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .info-row .pos {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .info-row .neg {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: .5rem;
+      margin-top: .85rem;
+    }
+
+    .card-actions .btn {
+      flex: 1;
+      justify-content: center;
+    }
+
+    /* ── Empty State ── */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+    }
+
+    .empty-state i {
+      font-size: 3.5rem;
+      opacity: .25;
+      display: block;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: .4rem;
+    }
+
+    .empty-state p {
+      font-size: .9rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* ── Table ── */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .88rem;
+    }
+
+    th {
+      text-align: left;
+      padding: .7rem 1rem;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: .8rem 1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: var(--surface2);
+    }
+
+    /* ── PO Cards ── */
+    .po-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .po-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: .75rem;
+    }
+
+    .po-num {
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+
+    .po-date {
+      font-size: .82rem;
+      color: var(--muted);
+      margin-top: .15rem;
+    }
+
+    .po-badge {
+      font-size: .75rem;
+      font-weight: 700;
+      padding: .3rem .75rem;
+      border-radius: 20px;
+    }
+
+    .po-badge.pending {
+      background: rgba(245, 158, 11, .15);
+      color: var(--warning);
+    }
+
+    .po-badge.received {
+      background: rgba(34, 211, 160, .15);
+      color: var(--success);
+    }
+
+    .po-items {
+      font-size: .85rem;
+      color: var(--muted);
+      margin-bottom: .75rem;
+    }
+
+    .po-item-row {
+      display: flex;
+      justify-content: space-between;
+      padding: .3rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .po-item-row:last-child {
+      border-bottom: none;
+    }
+
+    .po-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: .75rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .po-total {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    /* ── Category Cards ── */
+    .cat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: .75rem;
+      transition: all .2s;
+    }
+
+    .cat-card:hover {
+      border-color: var(--primary);
+    }
+
+    .cat-name {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .cat-count {
+      font-size: .82rem;
+      color: var(--muted);
+      margin-top: .15rem;
+    }
+
+    /* ── Chart Section ── */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+    }
+
+    .chart-title {
+      font-weight: 700;
+      margin-bottom: 1rem;
+      font-size: .95rem;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 240px;
+    }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .7);
+      backdrop-filter: blur(6px);
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      animation: fadeIn .15s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
       }
 
-      * {
-        -webkit-tap-highlight-color: transparent;
-        box-sizing: border-box;
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.75rem;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .6);
+      animation: slideUp .2s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
       }
 
-      body {
-        background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        margin: 0;
-        padding: 0;
-        padding-bottom: var(--bottom-nav-height);
-        overflow-x: hidden;
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: color .2s;
+    }
+
+    .modal-close:hover {
+      color: var(--danger);
+    }
+
+    /* ── Form ── */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: .4rem;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: .7rem .9rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: inherit;
+      font-size: .9rem;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(124, 111, 247, .15);
+    }
+
+    .form-control::placeholder {
+      color: var(--muted);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .75rem;
+    }
+
+    .form-hint {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: .3rem;
+    }
+
+    .form-error {
+      font-size: .78rem;
+      color: var(--danger);
+      margin-top: .3rem;
+    }
+
+    /* ── Toast ── */
+    #toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .85rem 1.25rem;
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      font-size: .88rem;
+      font-weight: 500;
+      min-width: 260px;
+      animation: toastIn .25s ease;
+    }
+
+    @keyframes toastIn {
+      from {
+        transform: translateX(110%);
+        opacity: 0;
       }
 
-      /* Header */
-      .app-header {
-        background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
-        color: white;
-        padding: 1rem;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .toast.success {
+      border-left: 4px solid var(--success);
+    }
+
+    .toast.warning {
+      border-left: 4px solid var(--warning);
+    }
+
+    .toast.danger {
+      border-left: 4px solid var(--danger);
+    }
+
+    .toast.info {
+      border-left: 4px solid var(--info);
+    }
+
+    .toast i {
+      font-size: 1.1rem;
+    }
+
+    .toast.success i {
+      color: var(--success);
+    }
+
+    .toast.warning i {
+      color: var(--warning);
+    }
+
+    .toast.danger i {
+      color: var(--danger);
+    }
+
+    .toast.info i {
+      color: var(--info);
+    }
+
+    /* ── Misc ── */
+    .d-none {
+      display: none !important;
+    }
+
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1rem 0;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .shell {
+        grid-template-columns: 1fr;
       }
 
-      .app-title {
-        font-weight: 800;
-        font-size: 1.5rem;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .offline-badge {
-        background: #ef4444;
-        color: white;
-        padding: 0.25rem 0.5rem;
-        border-radius: 12px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        animation: pulse 2s infinite;
-      }
-
-      /* Alert Cards */
-      .alert-summary {
-        display: flex;
-        gap: 0.5rem;
-        padding: 1rem;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-      }
-
-      .alert-summary::-webkit-scrollbar {
+      .sidebar {
         display: none;
       }
 
-      .alert-card {
-        background: white;
-        padding: 1rem;
-        border-radius: 12px;
-        min-width: 110px;
-        text-align: center;
-        box-shadow: var(--card-shadow);
-        flex-shrink: 0;
-        cursor: pointer;
-        transition: transform 0.2s;
-      }
-
-      .alert-card:active {
-        transform: scale(0.95);
-      }
-
-      .alert-card.critical {
-        border-left: 4px solid var(--danger);
-      }
-
-      .alert-card.warning {
-        border-left: 4px solid var(--warning);
-      }
-
-      .alert-number {
-        font-size: 2rem;
-        font-weight: 800;
-        line-height: 1;
-      }
-
-      .alert-label {
-        font-size: 0.7rem;
-        color: #6b7280;
-        margin-top: 0.25rem;
-      }
-
-      /* Filter Chips */
-      .filter-chips {
-        display: flex;
-        gap: 0.5rem;
-        padding: 0.75rem 1rem;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        background: white;
-        border-bottom: 1px solid #e9ecef;
-      }
-
-      .filter-chips::-webkit-scrollbar {
-        display: none;
-      }
-
-      .chip {
-        background: #f1f5f9;
-        border: 2px solid #e2e8f0;
-        border-radius: 20px;
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
-        font-weight: 600;
-        cursor: pointer;
-        white-space: nowrap;
-        flex-shrink: 0;
-        transition: all 0.2s;
-        min-height: 44px;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-      }
-
-      .chip:active {
-        transform: scale(0.95);
-      }
-
-      .chip.active {
-        background: var(--primary);
-        color: white;
-        border-color: var(--primary);
-      }
-
-      .chip.danger {
-        border-color: var(--danger);
-        color: var(--danger);
-      }
-
-      .chip.danger.active {
-        background: var(--danger);
-        color: white;
-      }
-
-      /* Search Bar */
-      .search-container {
-        padding: 0.75rem 1rem;
-        background: white;
-      }
-
-      .search-wrapper {
-        position: relative;
-      }
-
-      .search-input {
-        width: 100%;
-        padding: 0.75rem 1rem 0.75rem 2.5rem;
-        border: 2px solid #e9ecef;
-        border-radius: 12px;
-        font-size: 1rem;
-        min-height: 48px;
-      }
-
-      .search-input:focus {
-        outline: none;
-        border-color: var(--primary);
-      }
-
-      .search-icon {
-        position: absolute;
-        left: 0.75rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #94a3b8;
-        font-size: 1.2rem;
-      }
-
-      /* Product Cards with Swipe */
-      .product-list {
-        padding: 0.5rem 1rem 1rem;
-      }
-
-      .product-card-wrapper {
-        position: relative;
-        margin-bottom: 0.75rem;
-        overflow: hidden;
-        border-radius: 12px;
-      }
-
-      .swipe-actions {
-        position: absolute;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        display: flex;
-        transform: translateX(100%);
-        z-index: 1;
-      }
-
-      .swipe-action {
-        width: 80px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 0.75rem;
-        gap: 0.25rem;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-
-      .swipe-action:active {
-        filter: brightness(0.9);
-      }
-
-      .swipe-action.edit {
-        background: var(--success);
-      }
-
-      .swipe-action.delete {
-        background: var(--danger);
-      }
-
-      .swipe-action i {
-        font-size: 1.5rem;
-      }
-
-      .product-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: var(--card-shadow);
-        position: relative;
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border-left: 4px solid var(--success);
-        touch-action: pan-y;
-      }
-
-      .product-card.swiped {
-        transform: translateX(-160px);
-      }
-
-      .product-card.out-of-stock {
-        border-left-color: var(--danger);
-        background: #fef2f2;
-      }
-
-      .product-card.low-stock {
-        border-left-color: var(--warning);
-        background: #fffbeb;
-      }
-
-      .product-card.needs-reorder {
-        border-left-color: #f97316;
-      }
-
-      .product-header {
-        padding: 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: start;
-      }
-
-      .product-info {
-        flex: 1;
-      }
-
-      .product-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        color: #2d3748;
-      }
-
-      .stock-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        padding: 0.5rem 0.75rem;
-        border-radius: 8px;
-        font-weight: 700;
-        font-size: 0.9rem;
-      }
-
-      .stock-badge.in-stock {
-        background: #d1fae5;
-        color: #065f46;
-      }
-
-      .stock-badge.low-stock {
-        background: #fef3c7;
-        color: #92400e;
-      }
-
-      .stock-badge.out-of-stock {
-        background: #fee2e2;
-        color: #991b1b;
-      }
-
-      .stock-badge.needs-reorder {
-        background: #fed7aa;
-        color: #9a3412;
-      }
-
-      .reorder-badge {
-        position: absolute;
-        top: 0.5rem;
-        right: 0.5rem;
-        background: var(--danger);
-        color: white;
-        padding: 0.25rem 0.5rem;
-        border-radius: 12px;
-        font-size: 0.7rem;
-        font-weight: 700;
-        animation: pulse 2s infinite;
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.7;
-        }
-      }
-
-      .product-details {
-        padding: 0 1rem 1rem;
-      }
-
-      .price-row {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 0.75rem;
-      }
-
-      .price-item {
-        flex: 1;
-      }
-
-      .price-label {
-        font-size: 0.7rem;
-        color: #64748b;
-        text-transform: uppercase;
-        font-weight: 600;
-      }
-
-      .price-value {
-        font-size: 1rem;
-        font-weight: 700;
-        color: #2d3748;
-      }
-
-      .supplier-info {
-        background: #f8f9fa;
-        padding: 0.75rem;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        margin-bottom: 0.75rem;
-      }
-
-      .supplier-name {
-        font-weight: 700;
-        margin-bottom: 0.25rem;
-      }
-
-      /* Quick Actions */
-      .quick-actions {
-        display: flex;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        border-top: 1px solid #e9ecef;
-      }
-
-      .btn-quick {
-        flex: 1;
-        padding: 0.75rem;
-        border: 2px solid;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        min-height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.4rem;
-      }
-
-      .btn-quick:active {
-        transform: scale(0.95);
-      }
-
-      .btn-quick.primary {
-        background: var(--primary);
-        border-color: var(--primary);
-        color: white;
-      }
-
-      .btn-quick.danger {
-        background: var(--danger);
-        border-color: var(--danger);
-        color: white;
-      }
-
-      .btn-quick.outline {
-        background: white;
-        border-color: #e9ecef;
-        color: #64748b;
-      }
-
-      /* Stock Adjust Buttons */
-      .stock-controls {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-        padding: 0.5rem 1rem;
-      }
-
-      .stock-btn {
-        width: 44px;
-        height: 44px;
-        border-radius: 8px;
-        border: 2px solid;
-        background: white;
-        font-size: 1.2rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .stock-btn:active {
-        transform: scale(0.9);
-      }
-
-      .stock-btn.plus {
-        border-color: var(--success);
-        color: var(--success);
-      }
-
-      .stock-btn.minus {
-        border-color: var(--danger);
-        color: var(--danger);
-      }
-
-      .stock-display {
-        flex: 1;
-        text-align: center;
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: var(--primary);
-      }
-
-      /* Bottom Navigation */
-      .bottom-nav {
+      .mobile-nav {
+        display: flex !important;
         position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
-        height: var(--bottom-nav-height);
-        background: white;
-        border-top: 1px solid #e9ecef;
-        display: flex;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        z-index: 200;
+        padding: .5rem;
+        gap: .25rem;
         justify-content: space-around;
-        align-items: center;
-        z-index: 1000;
-        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
       }
 
-      .nav-item {
-        flex: 1;
-        display: flex;
+      .mobile-nav .nav-item {
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.25rem;
-        padding: 0.5rem;
-        cursor: pointer;
-        color: #94a3b8;
-        font-size: 0.7rem;
-        font-weight: 600;
-        transition: all 0.2s;
-        min-height: 44px;
-      }
-
-      .nav-item:active {
-        background: #f8f9fa;
-      }
-
-      .nav-item.active {
-        color: var(--primary);
-      }
-
-      .nav-item i {
-        font-size: 1.5rem;
-      }
-
-      /* Floating Action Button */
-      .fab {
-        position: fixed;
-        bottom: calc(var(--bottom-nav-height) + 1rem);
-        right: 1rem;
-        width: var(--fab-size);
-        height: var(--fab-size);
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        font-size: 1.5rem;
-        cursor: pointer;
-        z-index: 999;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
+        gap: .15rem;
+        font-size: .7rem;
+        padding: .4rem .6rem;
+        flex: 1;
         justify-content: center;
       }
 
-      .fab:active {
-        transform: scale(0.9);
-      }
-
-      /* Modal */
-      .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.6);
-        z-index: 9999;
-        display: flex;
-        align-items: flex-end;
-        animation: fadeIn 0.2s;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-
-      .modal-content {
-        background: white;
-        width: 100%;
-        max-height: 90vh;
-        overflow-y: auto;
-        border-radius: 20px 20px 0 0;
-        animation: slideUp 0.3s;
-        padding-bottom: 1rem;
-      }
-
-      @keyframes slideUp {
-        from {
-          transform: translateY(100%);
-        }
-        to {
-          transform: translateY(0);
-        }
-      }
-
-      .modal-header {
-        padding: 1.5rem 1rem 1rem;
+      .mobile-nav .nav-item i {
         font-size: 1.3rem;
-        font-weight: 700;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid #e9ecef;
-        position: sticky;
-        top: 0;
-        background: white;
-        z-index: 10;
+        width: auto;
       }
 
-      .modal-body {
+      .main {
         padding: 1rem;
+        padding-bottom: 5rem;
       }
 
-      .form-group {
-        margin-bottom: 1rem;
+      .form-row {
+        grid-template-columns: 1fr;
       }
 
-      .form-label {
-        font-weight: 600;
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-        display: block;
-        color: #374151;
+      .chart-grid {
+        grid-template-columns: 1fr;
       }
+    }
 
-      .form-input {
-        width: 100%;
-        padding: 0.75rem;
-        border: 2px solid #e9ecef;
-        border-radius: 8px;
-        font-size: 1rem;
-        min-height: 48px;
-      }
+    .mobile-nav {
+      display: none;
+    }
+  </style>
+</head>
 
-      .form-input:focus {
-        outline: none;
-        border-color: var(--primary);
-      }
+<body>
 
-      .btn-full {
-        width: 100%;
-        padding: 1rem;
-        border-radius: 8px;
-        font-weight: 700;
-        font-size: 1rem;
-        cursor: pointer;
-        border: none;
-        transition: all 0.2s;
-        min-height: 52px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-      }
-
-      .btn-full:active {
-        transform: scale(0.98);
-      }
-
-      .btn-full.primary {
-        background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
-        color: white;
-      }
-
-      .btn-full.success {
-        background: var(--success);
-        color: white;
-      }
-
-      .btn-full.outline {
-        background: white;
-        border: 2px solid #e9ecef;
-        color: #64748b;
-      }
-
-      /* Empty State */
-      .empty-state {
-        text-align: center;
-        padding: 3rem 2rem;
-        color: #94a3b8;
-      }
-
-      .empty-state i {
-        font-size: 4rem;
-        opacity: 0.3;
-        margin-bottom: 1rem;
-      }
-
-      /* Toast */
-      .toast {
-        position: fixed;
-        bottom: calc(var(--bottom-nav-height) + 1rem);
-        left: 1rem;
-        right: 1rem;
-        background: #1f2937;
-        color: white;
-        padding: 1rem;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        z-index: 10000;
-        animation: slideUp 0.3s;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      }
-
-      /* Sync Indicator */
-      .sync-indicator {
-        position: fixed;
-        top: 1rem;
-        left: 50%;
-        transform: translateX(-50%);
-        background: var(--success);
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        z-index: 10000;
-        animation: slideDown 0.3s;
-      }
-
-      @keyframes slideDown {
-        from {
-          transform: translateX(-50%) translateY(-100%);
-        }
-        to {
-          transform: translateX(-50%) translateY(0);
-        }
-      }
-
-      /* Loading Spinner */
-      .spinner {
-        width: 40px;
-        height: 40px;
-        border: 4px solid #f3f4f6;
-        border-top-color: var(--primary);
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-      }
-
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      /* Utility Classes */
-      .text-muted {
-        color: #6b7280;
-      }
-
-      .text-success {
-        color: var(--success);
-      }
-
-      .text-danger {
-        color: var(--danger);
-      }
-
-      .mt-1 {
-        margin-top: 0.5rem;
-      }
-      .mb-1 {
-        margin-bottom: 0.5rem;
-      }
-      .d-none {
-        display: none;
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Header -->
-    <div class="app-header">
-      <div class="app-title">
-        📦 Inventory
-        <span id="offline-indicator" class="offline-badge d-none">Offline</span>
+  <div class="shell">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-icon">📦</span> Inventory Pro
       </div>
-    </div>
-
-    <!-- Alert Cards -->
-    <div class="alert-summary">
-      <div class="alert-card critical" onclick="app.filterBy('out-of-stock')">
-        <div class="alert-number" id="count-out-of-stock">0</div>
-        <div class="alert-label">Out of Stock</div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost btn-sm" id="btn-backup" title="Backup / Restore">
+          <i class="bi bi-cloud-arrow-up"></i> <span>Backup</span>
+        </button>
+        <button class="btn btn-primary btn-sm" id="btn-add-product">
+          <i class="bi bi-plus-lg"></i> Add Product
+        </button>
       </div>
-      <div class="alert-card warning" onclick="app.filterBy('low-stock')">
-        <div class="alert-number" id="count-low-stock">0</div>
-        <div class="alert-label">Low Stock</div>
-      </div>
-      <div class="alert-card" onclick="app.filterBy('needs-reorder')">
-        <div class="alert-number" id="count-needs-reorder">0</div>
-        <div class="alert-label">Need Reorder</div>
-      </div>
-      <div class="alert-card" onclick="app.filterBy('all')">
-        <div class="alert-number" id="count-total">0</div>
-        <div class="alert-label">Total</div>
-      </div>
-    </div>
+    </header>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="nav-section-label">Menu</div>
+      <button class="nav-item active" data-tab="products">
+        <i class="bi bi-grid-1x2"></i> Products
+      </button>
+      <button class="nav-item" data-tab="analytics">
+        <i class="bi bi-bar-chart-line"></i> Analytics
+      </button>
+      <button class="nav-item" data-tab="orders">
+        <i class="bi bi-receipt"></i> Purchase Orders
+      </button>
+      <button class="nav-item" data-tab="categories">
+        <i class="bi bi-tags"></i> Categories
+      </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main" id="main-content">
+      <!-- Rendered by JS -->
+    </main>
+  </div>
+
+  <!-- Mobile Nav -->
+  <nav class="mobile-nav">
+    <button class="nav-item active" data-tab="products"><i class="bi bi-grid-1x2"></i>Products</button>
+    <button class="nav-item" data-tab="analytics"><i class="bi bi-bar-chart-line"></i>Analytics</button>
+    <button class="nav-item" data-tab="orders"><i class="bi bi-receipt"></i>Orders</button>
+    <button class="nav-item" data-tab="categories"><i class="bi bi-tags"></i>Categories</button>
+  </nav>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
 
-    <!-- Search -->
-    <div class="search-container">
-      <div class="search-wrapper">
-        <i class="bi bi-search search-icon"></i>
-        <input
-          type="text"
-          id="search-input"
-          class="search-input"
-          placeholder="Search products..."
-        />
-      </div>
-    </div>
-
-    <!-- Filter Chips -->
-    <div class="filter-chips">
-      <div class="chip active" data-filter="all">
-        <i class="bi bi-grid"></i> All
-      </div>
-      <div class="chip" data-filter="needs-reorder">
-        <i class="bi bi-exclamation-circle"></i> Need Reorder
-      </div>
-      <div class="chip" data-filter="low-stock">
-        <i class="bi bi-dash-circle"></i> Low Stock
-      </div>
-      <div class="chip danger" data-filter="out-of-stock">
-        <i class="bi bi-x-circle"></i> Out of Stock
-      </div>
-    </div>
-
-    <!-- Product List -->
-    <div class="product-list" id="product-list"></div>
-
-    <!-- Empty State -->
-    <div id="empty-state" class="empty-state d-none">
-      <i class="bi bi-box-seam"></i>
-      <h4>No Products Yet</h4>
-      <p>Tap the + button to add your first product</p>
-    </div>
-
-    <!-- Floating Action Button -->
-    <button class="fab" onclick="app.showAddProduct()">
-      <i class="bi bi-plus-lg"></i>
-    </button>
-
-    <!-- Bottom Navigation -->
-    <div class="bottom-nav">
-      <div class="nav-item active" onclick="app.showProducts()">
-        <i class="bi bi-grid"></i>
-        <span>Products</span>
-      </div>
-      <div class="nav-item" onclick="app.showReorderList()">
-        <i class="bi bi-cart-plus"></i>
-        <span>Reorder</span>
-      </div>
-      <div class="nav-item" onclick="app.showSuppliers()">
-        <i class="bi bi-truck"></i>
-        <span>Suppliers</span>
-      </div>
-      <div class="nav-item" onclick="app.showSettings()">
-        <i class="bi bi-gear"></i>
-        <span>More</span>
-      </div>
-    </div>
-
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-      crossorigin="anonymous"
-    ></script>
-
-    <script>
-      class InventoryManager {
-        constructor() {
-          this.products = this.loadProducts();
-          this.suppliers = {};
-          this.orderHistory = [];
-          this.currentFilter = "all";
-          this.searchQuery = "";
-          this.isOnline = navigator.onLine;
-          this.swipedCard = null;
-          this.init();
-        }
-
-        init() {
-          this.setupEventListeners();
-          this.setupOfflineMode();
-          this.setupSwipeGestures();
-          this.render();
-          this.checkOnlineStatus();
-        }
-
-        // ═══════════════════════════════════════════════════════════════════════
-        // OFFLINE MODE
-        // ═══════════════════════════════════════════════════════════════════════
-
-        setupOfflineMode() {
-          window.addEventListener("online", () => {
-            this.isOnline = true;
-            document
-              .getElementById("offline-indicator")
-              .classList.add("d-none");
-            this.showToast("Back online!", "success");
-            this.syncData();
-          });
-
-          window.addEventListener("offline", () => {
-            this.isOnline = false;
-            document
-              .getElementById("offline-indicator")
-              .classList.remove("d-none");
-            this.showToast("Working offline", "warning");
-          });
-
-          // Register service worker for offline caching
-          if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register(this.createServiceWorkerBlob());
-          }
-        }
-
-        createServiceWorkerBlob() {
-          const swCode = `
-            self.addEventListener('install', (e) => {
-              e.waitUntil(
-                caches.open('inventory-v1').then((cache) => {
-                  return cache.addAll(['/']);
-                })
-              );
-            });
-            self.addEventListener('fetch', (e) => {
-              e.respondWith(
-                caches.match(e.request).then((response) => {
-                  return response || fetch(e.request);
-                })
-              );
-            });
-          `;
-          const blob = new Blob([swCode], { type: "application/javascript" });
-          return URL.createObjectURL(blob);
-        }
-
-        checkOnlineStatus() {
-          this.isOnline = navigator.onLine;
-          if (!this.isOnline) {
-            document
-              .getElementById("offline-indicator")
-              .classList.remove("d-none");
-          }
-        }
-
-        syncData() {
-          // In a real app, this would sync with a backend
-          const indicator = document.createElement("div");
-          indicator.className = "sync-indicator";
-          indicator.innerHTML =
-            '<i class="bi bi-check-circle me-2"></i>Data synced';
-          document.body.appendChild(indicator);
-          setTimeout(() => indicator.remove(), 2000);
-        }
-
-        // ═══════════════════════════════════════════════════════════════════════
-        // SWIPE GESTURES
-        // ═══════════════════════════════════════════════════════════════════════
-
-        setupSwipeGestures() {
-          let touchStartX = 0;
-          let touchEndX = 0;
-          let currentCard = null;
-
-          document.addEventListener(
-            "touchstart",
-            (e) => {
-              const card = e.target.closest(".product-card");
-              if (card) {
-                touchStartX = e.changedTouches[0].screenX;
-                currentCard = card;
-              }
-            },
-            { passive: true },
-          );
-
-          document.addEventListener(
-            "touchend",
-            (e) => {
-              if (currentCard) {
-                touchEndX = e.changedTouches[0].screenX;
-                this.handleSwipe(currentCard, touchStartX, touchEndX);
-                currentCard = null;
-              }
-            },
-            { passive: true },
-          );
-        }
-
-        handleSwipe(card, startX, endX) {
-          const swipeDistance = startX - endX;
-
-          if (swipeDistance > 80) {
-            // Swipe left - show actions
-            this.closeAllSwipes();
-            card.classList.add("swiped");
-            this.swipedCard = card;
-          } else if (swipeDistance < -50) {
-            // Swipe right - close
-            this.closeAllSwipes();
-          }
-        }
-
-        closeAllSwipes() {
-          document.querySelectorAll(".product-card.swiped").forEach((card) => {
-            card.classList.remove("swiped");
-          });
-          this.swipedCard = null;
-        }
-
-        // ═══════════════════════════════════════════════════════════════════════
-        // STORAGE
-        // ═══════════════════════════════════════════════════════════════════════
-
-        loadProducts() {
-          try {
-            const stored = localStorage.getItem("shop-inventory-v1");
-            return stored ? JSON.parse(stored) : [];
-          } catch {
-            return [];
-          }
-        }
-
-        saveData() {
-          localStorage.setItem(
-            "shop-inventory-v1",
-            JSON.stringify(this.products),
-          );
-        }
-
-        generateId() {
-          return `prod-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        }
-
-        // ═══════════════════════════════════════════════════════════════════════
-        // PRODUCT OPERATIONS
-        // ═══════════════════════════════════════════════════════════════════════
-
-        addProduct(data) {
-          if (!data.name || data.stock === "" || data.threshold === "") {
-            this.showToast("Please fill required fields", "warning");
-            return false;
-          }
-
-          const reorderPoint = Math.ceil(
-            parseInt(data.threshold) + parseInt(data.threshold) * 0.5,
-          );
-
-          const product = {
-            id: this.generateId(),
-            name: data.name.trim(),
-            stock: parseInt(data.stock),
-            threshold: parseInt(data.threshold),
-            reorderPoint: reorderPoint,
-            costPrice: parseFloat(data.cost) || 0,
-            sellingPrice: parseFloat(data.price) || 0,
-            supplier: data.supplier?.trim() || "",
-            supplierContact: data.supplierContact?.trim() || "",
-            createdAt: Date.now(),
-          };
-
-          this.products.push(product);
-          this.saveData();
-          this.render();
-          this.showToast("Product added!", "success");
-
-          if (product.stock <= product.reorderPoint) {
-            setTimeout(
-              () =>
-                this.showToast(`⚠️ ${product.name} needs reorder!`, "warning"),
-              500,
-            );
-          }
-
-          return true;
-        }
-
-        updateProduct(index, updates) {
-          if (index < 0 || index >= this.products.length) return false;
-
-          this.products[index] = { ...this.products[index], ...updates };
-          this.saveData();
-          this.render();
-          return true;
-        }
-
-        deleteProduct(index) {
-          if (index < 0 || index >= this.products.length) return false;
-          const name = this.products[index].name;
-          this.products.splice(index, 1);
-          this.saveData();
-          this.render();
-          this.showToast(`${name} deleted`, "success");
-          return true;
-        }
-
-        adjustStock(index, amount) {
-          if (index < 0 || index >= this.products.length) return false;
-
-          const product = this.products[index];
-          const newStock = Math.max(0, product.stock + amount);
-
-          this.updateProduct(index, { stock: newStock });
-
-          // Haptic feedback
-          if (navigator.vibrate) {
-            navigator.vibrate(10);
-          }
-
-          return true;
-        }
-
-        getStockStatus(product) {
-          if (product.stock === 0) return "out-of-stock";
-          if (product.stock <= product.threshold) return "low-stock";
-          if (product.stock <= product.reorderPoint) return "needs-reorder";
-          return "in-stock";
-        }
-
-        getReorderQuantity(product) {
-          const optimalStock = product.reorderPoint * 2;
-          return Math.max(0, optimalStock - product.stock);
-        }
-
-        // ═══════════════════════════════════════════════════════════════════════
-        // UI METHODS
-        // ═══════════════════════════════════════════════════════════════════════
-
-        showAddProduct() {
-          const modal = document.createElement("div");
-          modal.className = "modal-overlay";
-          modal.innerHTML = `
-            <div class="modal-content">
-              <div class="modal-header">
-                <span>Add Product</span>
-                <i class="bi bi-x-lg" onclick="this.closest('.modal-overlay').remove()" style="cursor: pointer;"></i>
-              </div>
-              <div class="modal-body">
-                <form id="add-form">
-                  <div class="form-group">
-                    <label class="form-label">Product Name *</label>
-                    <input type="text" id="product-name" class="form-input" placeholder="Enter product name" required autofocus />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Current Stock *</label>
-                    <input type="number" id="product-stock" class="form-input" placeholder="0" min="0" required />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Minimum Stock *</label>
-                    <input type="number" id="product-threshold" class="form-input" placeholder="When to reorder" min="0" required />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Cost Price (₹)</label>
-                    <input type="number" id="product-cost" class="form-input" placeholder="0.00" step="0.01" min="0" />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Selling Price (₹)</label>
-                    <input type="number" id="product-price" class="form-input" placeholder="0.00" step="0.01" min="0" />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Supplier Name</label>
-                    <input type="text" id="product-supplier" class="form-input" placeholder="Supplier name" />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Supplier Contact</label>
-                    <input type="text" id="product-contact" class="form-input" placeholder="Phone or email" />
-                  </div>
-                  <button type="submit" class="btn-full primary">
-                    <i class="bi bi-plus-lg"></i> Add Product
-                  </button>
-                </form>
-              </div>
-            </div>
-          `;
-
-          document.body.appendChild(modal);
-
-          document
-            .getElementById("add-form")
-            .addEventListener("submit", (e) => {
-              e.preventDefault();
-
-              this.addProduct({
-                name: document.getElementById("product-name").value,
-                stock: document.getElementById("product-stock").value,
-                threshold: document.getElementById("product-threshold").value,
-                cost: document.getElementById("product-cost").value,
-                price: document.getElementById("product-price").value,
-                supplier: document.getElementById("product-supplier").value,
-                supplierContact:
-                  document.getElementById("product-contact").value,
-              });
-
-              modal.remove();
-            });
-
-          modal.addEventListener("click", (e) => {
-            if (e.target === modal) modal.remove();
-          });
-        }
-
-        showEditProduct(index) {
-          const product = this.products[index];
-
-          const modal = document.createElement("div");
-          modal.className = "modal-overlay";
-          modal.innerHTML = `
-            <div class="modal-content">
-              <div class="modal-header">
-                <span>Edit Product</span>
-                <i class="bi bi-x-lg" onclick="this.closest('.modal-overlay').remove()" style="cursor: pointer;"></i>
-              </div>
-              <div class="modal-body">
-                <form id="edit-form">
-                  <div class="form-group">
-                    <label class="form-label">Product Name *</label>
-                    <input type="text" id="edit-name" class="form-input" value="${this.escapeHtml(product.name)}" required />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Current Stock *</label>
-                    <input type="number" id="edit-stock" class="form-input" value="${product.stock}" min="0" required />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Minimum Stock *</label>
-                    <input type="number" id="edit-threshold" class="form-input" value="${product.threshold}" min="0" required />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Cost Price (₹)</label>
-                    <input type="number" id="edit-cost" class="form-input" value="${product.costPrice}" step="0.01" min="0" />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Selling Price (₹)</label>
-                    <input type="number" id="edit-price" class="form-input" value="${product.sellingPrice}" step="0.01" min="0" />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Supplier Name</label>
-                    <input type="text" id="edit-supplier" class="form-input" value="${this.escapeHtml(product.supplier || "")}" />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Supplier Contact</label>
-                    <input type="text" id="edit-contact" class="form-input" value="${this.escapeHtml(product.supplierContact || "")}" />
-                  </div>
-                  <button type="submit" class="btn-full success">
-                    <i class="bi bi-check-lg"></i> Save Changes
-                  </button>
-                </form>
-              </div>
-            </div>
-          `;
-
-          document.body.appendChild(modal);
-
-          document
-            .getElementById("edit-form")
-            .addEventListener("submit", (e) => {
-              e.preventDefault();
-
-              const newThreshold = parseInt(
-                document.getElementById("edit-threshold").value,
-              );
-              this.updateProduct(index, {
-                name: document.getElementById("edit-name").value.trim(),
-                stock: parseInt(document.getElementById("edit-stock").value),
-                threshold: newThreshold,
-                reorderPoint: Math.ceil(newThreshold + newThreshold * 0.5),
-                costPrice:
-                  parseFloat(document.getElementById("edit-cost").value) || 0,
-                sellingPrice:
-                  parseFloat(document.getElementById("edit-price").value) || 0,
-                supplier: document.getElementById("edit-supplier").value.trim(),
-                supplierContact: document
-                  .getElementById("edit-contact")
-                  .value.trim(),
-              });
-
-              modal.remove();
-              this.showToast("Product updated!", "success");
-            });
-
-          modal.addEventListener("click", (e) => {
-            if (e.target === modal) modal.remove();
-          });
-        }
-
-        showStockAdjust(index) {
-          const product = this.products[index];
-
-          const modal = document.createElement("div");
-          modal.className = "modal-overlay";
-          modal.innerHTML = `
-            <div class="modal-content">
-              <div class="modal-header">
-                <span>Adjust Stock</span>
-                <i class="bi bi-x-lg" onclick="this.closest('.modal-overlay').remove()" style="cursor: pointer;"></i>
-              </div>
-              <div class="modal-body">
-                <div class="form-group">
-                  <label class="form-label">Product</label>
-                  <div style="padding: 1rem; background: #f8f9fa; border-radius: 8px; font-weight: 600;">
-                    ${this.escapeHtml(product.name)}
-                  </div>
-                </div>
-                <div class="stock-controls">
-                  <button class="stock-btn minus" onclick="app.adjustStock(${index}, -10)">-10</button>
-                  <button class="stock-btn minus" onclick="app.adjustStock(${index}, -1)">-1</button>
-                  <div class="stock-display" id="current-stock-${index}">${product.stock}</div>
-                  <button class="stock-btn plus" onclick="app.adjustStock(${index}, 1)">+1</button>
-                  <button class="stock-btn plus" onclick="app.adjustStock(${index}, 10)">+10</button>
-                </div>
-                <div class="stock-controls">
-                  <button class="stock-btn minus" onclick="app.adjustStock(${index}, -50)">-50</button>
-                  <button class="stock-btn plus" onclick="app.adjustStock(${index}, 50)" style="flex: 1;">+50</button>
-                  <button class="stock-btn plus" onclick="app.adjustStock(${index}, 100)" style="flex: 1;">+100</button>
-                </div>
-                <button class="btn-full outline mt-1" onclick="this.closest('.modal-overlay').remove()">
-                  Done
-                </button>
-              </div>
-            </div>
-          `;
-
-          document.body.appendChild(modal);
-
-          modal.addEventListener("click", (e) => {
-            if (e.target === modal) modal.remove();
-          });
-        }
-
-        showReorderList() {
-          const needsReorder = this.products.filter((p) => {
-            const status = this.getStockStatus(p);
-            return (
-              status === "needs-reorder" ||
-              status === "low-stock" ||
-              status === "out-of-stock"
-            );
-          });
-
-          if (needsReorder.length === 0) {
-            this.showToast("No products need reordering!", "success");
-            return;
-          }
-
-          const totalCost = needsReorder.reduce(
-            (sum, p) => sum + this.getReorderQuantity(p) * p.costPrice,
-            0,
-          );
-
-          const modal = document.createElement("div");
-          modal.className = "modal-overlay";
-          modal.innerHTML = `
-            <div class="modal-content">
-              <div class="modal-header">
-                <span>Reorder List (${needsReorder.length})</span>
-                <i class="bi bi-x-lg" onclick="this.closest('.modal-overlay').remove()" style="cursor: pointer;"></i>
-              </div>
-              <div class="modal-body">
-                <div style="background: #e0f2fe; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                  <div class="text-muted" style="font-size: 0.85rem;">Total Cost</div>
-                  <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">₹${totalCost.toFixed(2)}</div>
-                </div>
-                ${needsReorder
-                  .map((product) => {
-                    const quantity = this.getReorderQuantity(product);
-                    const cost = quantity * product.costPrice;
-                    return `
-                    <div style="background: white; padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem; border: 2px solid #e9ecef;">
-                      <div style="font-weight: 700; margin-bottom: 0.5rem;">${this.escapeHtml(product.name)}</div>
-                      <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #6b7280;">
-                        <span>Stock: ${product.stock}</span>
-                        <span>Min: ${product.threshold}</span>
-                      </div>
-                      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e9ecef;">
-                        <div>
-                          <div style="font-size: 0.75rem; color: #6b7280;">Order Quantity</div>
-                          <div style="font-size: 1.2rem; font-weight: 700; color: var(--primary);">${quantity} units</div>
-                        </div>
-                        <div style="text-align: right;">
-                          <div style="font-size: 0.75rem; color: #6b7280;">Cost</div>
-                          <div style="font-weight: 700;">₹${cost.toFixed(2)}</div>
-                        </div>
-                      </div>
-                      ${
-                        product.supplier
-                          ? `
-                        <div style="margin-top: 0.5rem; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; font-size: 0.85rem;">
-                          <strong>Supplier:</strong> ${this.escapeHtml(product.supplier)}
-                        </div>
-                      `
-                          : ""
-                      }
-                    </div>
-                  `;
-                  })
-                  .join("")}
-                <button class="btn-full primary" onclick="app.exportReorderList()">
-                  <i class="bi bi-download"></i> Export to CSV
-                </button>
-              </div>
-            </div>
-          `;
-
-          document.body.appendChild(modal);
-
-          modal.addEventListener("click", (e) => {
-            if (e.target === modal) modal.remove();
-          });
-        }
-
-        showSuppliers() {
-          const supplierStats = {};
-
-          this.products.forEach((product) => {
-            if (product.supplier) {
-              if (!supplierStats[product.supplier]) {
-                supplierStats[product.supplier] = {
-                  name: product.supplier,
-                  contact: product.supplierContact,
-                  products: 0,
-                  totalValue: 0,
-                };
-              }
-              supplierStats[product.supplier].products++;
-              supplierStats[product.supplier].totalValue +=
-                product.stock * product.costPrice;
-            }
-          });
-
-          const modal = document.createElement("div");
-          modal.className = "modal-overlay";
-          modal.innerHTML = `
-            <div class="modal-content">
-              <div class="modal-header">
-                <span>Suppliers</span>
-                <i class="bi bi-x-lg" onclick="this.closest('.modal-overlay').remove()" style="cursor: pointer;"></i>
-              </div>
-              <div class="modal-body">
-                ${
-                  Object.values(supplierStats).length === 0
-                    ? `
-                  <div class="empty-state">
-                    <i class="bi bi-truck"></i>
-                    <p>No suppliers added yet</p>
-                  </div>
-                `
-                    : Object.values(supplierStats)
-                        .map(
-                          (supplier) => `
-                  <div style="background: white; padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem; border: 2px solid #e9ecef;">
-                    <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">${this.escapeHtml(supplier.name)}</div>
-                    ${supplier.contact ? `<div style="color: #6b7280; font-size: 0.85rem; margin-bottom: 0.75rem;"><i class="bi bi-telephone me-1"></i>${this.escapeHtml(supplier.contact)}</div>` : ""}
-                    <div style="display: flex; gap: 1rem;">
-                      <div style="flex: 1;">
-                        <div style="font-size: 0.75rem; color: #6b7280;">Products</div>
-                        <div style="font-weight: 700; font-size: 1.2rem;">${supplier.products}</div>
-                      </div>
-                      <div style="flex: 1;">
-                        <div style="font-size: 0.75rem; color: #6b7280;">Total Value</div>
-                        <div style="font-weight: 700; font-size: 1.2rem; color: var(--success);">₹${supplier.totalValue.toFixed(2)}</div>
-                      </div>
-                    </div>
-                  </div>
-                `,
-                        )
-                        .join("")
-                }
-              </div>
-            </div>
-          `;
-
-          document.body.appendChild(modal);
-
-          modal.addEventListener("click", (e) => {
-            if (e.target === modal) modal.remove();
-          });
-        }
-
-        showSettings() {
-          const modal = document.createElement("div");
-          modal.className = "modal-overlay";
-          modal.innerHTML = `
-            <div class="modal-content">
-              <div class="modal-header">
-                <span>Settings</span>
-                <i class="bi bi-x-lg" onclick="this.closest('.modal-overlay').remove()" style="cursor: pointer;"></i>
-              </div>
-              <div class="modal-body">
-                <div style="padding: 1rem; background: white; border-radius: 8px; margin-bottom: 0.75rem; cursor: pointer;" onclick="app.exportData()">
-                  <div style="display: flex; align-items: center; gap: 1rem;">
-                    <i class="bi bi-download" style="font-size: 1.5rem; color: var(--primary);"></i>
-                    <div style="flex: 1;">
-                      <div style="font-weight: 700;">Export All Data</div>
-                      <div style="font-size: 0.85rem; color: #6b7280;">Download as CSV</div>
-                    </div>
-                    <i class="bi bi-chevron-right" style="color: #cbd5e0;"></i>
-                  </div>
-                </div>
-                <div style="padding: 1rem; background: white; border-radius: 8px; margin-bottom: 0.75rem;">
-                  <div style="display: flex; align-items: center; gap: 1rem;">
-                    <i class="bi bi-info-circle" style="font-size: 1.5rem; color: var(--primary);"></i>
-                    <div style="flex: 1;">
-                      <div style="font-weight: 700;">Total Products</div>
-                      <div style="font-size: 0.85rem; color: #6b7280;">${this.products.length} items</div>
-                    </div>
-                  </div>
-                </div>
-                <div style="padding: 1rem; background: white; border-radius: 8px; margin-bottom: 0.75rem;">
-                  <div style="display: flex; align-items: center; gap: 1rem;">
-                    <i class="bi bi-database" style="font-size: 1.5rem; color: var(--success);"></i>
-                    <div style="flex: 1;">
-                      <div style="font-weight: 700;">Offline Mode</div>
-                      <div style="font-size: 0.85rem; color: #6b7280;">Data saved locally</div>
-                    </div>
-                    <i class="bi bi-check-circle-fill" style="color: var(--success);"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-          `;
-
-          document.body.appendChild(modal);
-
-          modal.addEventListener("click", (e) => {
-            if (e.target === modal) modal.remove();
-          });
-        }
-
-        showProducts() {
-          this.closeAllSwipes();
-          // Already on products page
-        }
-
-        exportData() {
-          const headers = [
-            "Name",
-            "Stock",
-            "Min Stock",
-            "Reorder Point",
-            "Cost Price",
-            "Selling Price",
-            "Supplier",
-            "Contact",
-          ];
-          const rows = this.products.map((p) => [
-            p.name,
-            p.stock,
-            p.threshold,
-            p.reorderPoint,
-            p.costPrice.toFixed(2),
-            p.sellingPrice.toFixed(2),
-            p.supplier || "",
-            p.supplierContact || "",
-          ]);
-
-          let csv = headers.join(",") + "\n";
-          rows.forEach((row) => {
-            csv += row.map((cell) => `"${cell}"`).join(",") + "\n";
-          });
-
-          const blob = new Blob([csv], { type: "text/csv" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `inventory-${new Date().toISOString().split("T")[0]}.csv`;
-          a.click();
-          URL.revokeObjectURL(url);
-
-          this.showToast("Exported successfully!", "success");
-        }
-
-        exportReorderList() {
-          const needsReorder = this.products.filter((p) => {
-            const status = this.getStockStatus(p);
-            return (
-              status === "needs-reorder" ||
-              status === "low-stock" ||
-              status === "out-of-stock"
-            );
-          });
-
-          const headers = [
-            "Product",
-            "Current Stock",
-            "Min Stock",
-            "Order Quantity",
-            "Supplier",
-            "Contact",
-            "Unit Cost",
-            "Total Cost",
-          ];
-          const rows = needsReorder.map((p) => {
-            const qty = this.getReorderQuantity(p);
-            return [
-              p.name,
-              p.stock,
-              p.threshold,
-              qty,
-              p.supplier || "",
-              p.supplierContact || "",
-              p.costPrice.toFixed(2),
-              (qty * p.costPrice).toFixed(2),
-            ];
-          });
-
-          let csv = headers.join(",") + "\n";
-          rows.forEach((row) => {
-            csv += row.map((cell) => `"${cell}"`).join(",") + "\n";
-          });
-
-          const blob = new Blob([csv], { type: "text/csv" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `reorder-list-${new Date().toISOString().split("T")[0]}.csv`;
-          a.click();
-          URL.revokeObjectURL(url);
-
-          this.showToast("Reorder list exported!", "success");
-        }
-
-        // ═══════════════════════════════════════════════════════════════════════
-        // RENDERING
-        // ═══════════════════════════════════════════════════════════════════════
-
-        render() {
-          this.renderProductList();
-          this.updateCounts();
-        }
-
-        updateCounts() {
-          const outOfStock = this.products.filter(
-            (p) => this.getStockStatus(p) === "out-of-stock",
-          ).length;
-          const lowStock = this.products.filter(
-            (p) => this.getStockStatus(p) === "low-stock",
-          ).length;
-          const needsReorder = this.products.filter(
-            (p) => this.getStockStatus(p) === "needs-reorder",
-          ).length;
-
-          document.getElementById("count-out-of-stock").textContent =
-            outOfStock;
-          document.getElementById("count-low-stock").textContent = lowStock;
-          document.getElementById("count-needs-reorder").textContent =
-            needsReorder;
-          document.getElementById("count-total").textContent =
-            this.products.length;
-        }
-
-        getFilteredProducts() {
-          let filtered = [...this.products];
-
-          if (this.searchQuery) {
-            const query = this.searchQuery.toLowerCase();
-            filtered = filtered.filter(
-              (p) =>
-                p.name.toLowerCase().includes(query) ||
-                (p.supplier && p.supplier.toLowerCase().includes(query)),
-            );
-          }
-
-          if (this.currentFilter !== "all") {
-            filtered = filtered.filter(
-              (p) => this.getStockStatus(p) === this.currentFilter,
-            );
-          }
-
-          return filtered.sort((a, b) => {
-            const statusOrder = {
-              "out-of-stock": 0,
-              "low-stock": 1,
-              "needs-reorder": 2,
-              "in-stock": 3,
-            };
-            const aStatus = this.getStockStatus(a);
-            const bStatus = this.getStockStatus(b);
-
-            if (statusOrder[aStatus] !== statusOrder[bStatus]) {
-              return statusOrder[aStatus] - statusOrder[bStatus];
-            }
-
-            return a.name.localeCompare(b.name);
-          });
-        }
-
-        renderProductList() {
-          const container = document.getElementById("product-list");
-          const emptyState = document.getElementById("empty-state");
-          const filtered = this.getFilteredProducts();
-
-          if (filtered.length === 0 && this.products.length === 0) {
-            container.innerHTML = "";
-            emptyState.classList.remove("d-none");
-            return;
-          }
-
-          if (filtered.length === 0) {
-            container.innerHTML =
-              '<div class="empty-state"><i class="bi bi-search"></i><p>No products match your filters</p></div>';
-            emptyState.classList.add("d-none");
-            return;
-          }
-
-          emptyState.classList.add("d-none");
-          container.innerHTML = filtered
-            .map((product) => {
-              const originalIndex = this.products.indexOf(product);
-              return this.renderProductCard(product, originalIndex);
-            })
-            .join("");
-        }
-
-        renderProductCard(product, index) {
-          const status = this.getStockStatus(product);
-          const reorderQty = this.getReorderQuantity(product);
-
-          return `
-            <div class="product-card-wrapper">
-              <div class="swipe-actions">
-                <div class="swipe-action edit" onclick="app.showEditProduct(${index}); app.closeAllSwipes();">
-                  <i class="bi bi-pencil"></i>
-                  <span>Edit</span>
-                </div>
-                <div class="swipe-action delete" onclick="if(confirm('Delete ${this.escapeHtml(product.name)}?')) { app.deleteProduct(${index}); app.closeAllSwipes(); }">
-                  <i class="bi bi-trash"></i>
-                  <span>Delete</span>
-                </div>
-              </div>
-              <div class="product-card ${status}">
-                ${status !== "in-stock" ? '<div class="reorder-badge">⚠️ ACTION</div>' : ""}
-                <div class="product-header">
-                  <div class="product-info">
-                    <div class="product-title">${this.escapeHtml(product.name)}</div>
-                    <div class="stock-badge ${status}">
-                      <i class="bi bi-box-seam"></i>
-                      ${product.stock} units
-                    </div>
-                  </div>
-                </div>
-                <div class="product-details">
-                  <div class="price-row">
-                    <div class="price-item">
-                      <div class="price-label">Cost</div>
-                      <div class="price-value">₹${product.costPrice.toFixed(2)}</div>
-                    </div>
-                    <div class="price-item">
-                      <div class="price-label">Selling</div>
-                      <div class="price-value">₹${product.sellingPrice.toFixed(2)}</div>
-                    </div>
-                    <div class="price-item">
-                      <div class="price-label">Margin</div>
-                      <div class="price-value ${product.sellingPrice > product.costPrice ? "text-success" : "text-danger"}">
-                        ${product.costPrice > 0 ? (((product.sellingPrice - product.costPrice) / product.costPrice) * 100).toFixed(1) : 0}%
-                      </div>
-                    </div>
-                  </div>
-                  ${
-                    product.supplier
-                      ? `
-                    <div class="supplier-info">
-                      <div class="supplier-name"><i class="bi bi-truck me-1"></i>${this.escapeHtml(product.supplier)}</div>
-                      ${product.supplierContact ? `<div class="text-muted" style="font-size: 0.8rem;">${this.escapeHtml(product.supplierContact)}</div>` : ""}
-                    </div>
-                  `
-                      : ""
-                  }
-                </div>
-                <div class="quick-actions">
-                  <button class="btn-quick outline" onclick="app.showStockAdjust(${index})">
-                    <i class="bi bi-plus-slash-minus"></i> Adjust
-                  </button>
-                  ${
-                    status !== "in-stock"
-                      ? `
-                    <button class="btn-quick danger">
-                      <i class="bi bi-cart-plus"></i> Reorder (${reorderQty})
-                    </button>
-                  `
-                      : ""
-                  }
-                </div>
-              </div>
-            </div>
-          `;
-        }
-
-        // ═══════════════════════════════════════════════════════════════════════
-        // EVENT LISTENERS
-        // ═══════════════════════════════════════════════════════════════════════
-
-        setupEventListeners() {
-          document
-            .getElementById("search-input")
-            .addEventListener("input", (e) => {
-              this.searchQuery = e.target.value;
-              this.render();
-            });
-
-          document.querySelectorAll(".chip[data-filter]").forEach((chip) => {
-            chip.addEventListener("click", (e) => {
-              document
-                .querySelectorAll(".chip")
-                .forEach((c) => c.classList.remove("active"));
-              e.currentTarget.classList.add("active");
-              this.currentFilter = e.currentTarget.dataset.filter;
-              this.render();
-
-              if (navigator.vibrate) {
-                navigator.vibrate(10);
-              }
-            });
-          });
-
-          // Close swipes when clicking outside
-          document.addEventListener("click", (e) => {
-            if (!e.target.closest(".product-card-wrapper")) {
-              this.closeAllSwipes();
-            }
-          });
-        }
-
-        filterBy(filter) {
-          this.currentFilter = filter;
-          document
-            .querySelectorAll(".chip")
-            .forEach((c) => c.classList.remove("active"));
-          const chip = document.querySelector(`.chip[data-filter="${filter}"]`);
-          if (chip) chip.classList.add("active");
-          this.render();
-        }
-
-        escapeHtml(text) {
-          const div = document.createElement("div");
-          div.textContent = text;
-          return div.innerHTML;
-        }
-
-        showToast(message, type = "info") {
-          const icons = {
-            success: "bi-check-circle-fill",
-            warning: "bi-exclamation-triangle-fill",
-            info: "bi-info-circle-fill",
-          };
-
-          const toast = document.createElement("div");
-          toast.className = "toast";
-          toast.innerHTML = `
-            <i class="bi ${icons[type] || icons.info}"></i>
-            <span>${message}</span>
-          `;
-
-          document.body.appendChild(toast);
-
-          setTimeout(() => {
-            toast.style.animation = "slideUp 0.3s reverse";
-            setTimeout(() => toast.remove(), 300);
-          }, 3000);
-        }
-      }
-
-      const app = new InventoryManager();
-    </script>
-  </body>
 </html>
